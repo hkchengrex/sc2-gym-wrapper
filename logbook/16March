@@ -1,0 +1,10 @@
+20:12
+- CollectMineralShards running in gym environment
+- Need debugging unavailable actions
+
+21:37
+- Now can finish episode without error
+- Can ignore FutureWarning coz it also appears in our standard pysc2
+
+22:31
+- OpenAI gym environment works out of the box but our gym env does not. Some TF error.

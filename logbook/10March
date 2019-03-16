@@ -1,0 +1,2 @@
+- Tested ray lib with pong-ppo and it works. (with TF)
+- Need to install latest version (pip install -U)
