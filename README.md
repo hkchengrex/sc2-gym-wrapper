@@ -1,12 +1,7 @@
 # pytorch-sc2-ppo
 
-## Make sure you clone the submodule
-`git submodule init`
-
-`git submodule update`
-
-## Install RL library
-`cd pytorch-a2c-ppo-acktr-gail`
+## Get RL library and install it
+`git clone git@github.com:hkchengrex/pytorch-a2c-ppo-acktr-gail.git && cd pytorch-a2c-ppo-acktr-gail.git`
 
 `pip install -e .`
 
