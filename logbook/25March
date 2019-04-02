@@ -1,0 +1,6 @@
+10:02
+- SC2 crashes at 256 episode... "connection already closed"
+
+00:34
+- Still have no idea where the leak comes from...
+- Too difficult to debug, perhaps should switch to a simpler library

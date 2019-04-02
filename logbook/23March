@@ -1,0 +1,56 @@
+10:08
+- Oh IT IS JUST SLOW. Reached episode 494 now.
+- TOO SLOW
+- Using a lot of memory too. Each policy eval process now takes 7.4G while the main process takes 9.85G.
+- Action is still close to random
+
+10:55
+- And the memory usage is still increasing
+- OK It is about the config. We should not give the GPU to ray's config, but to PPO's config. 
+Now it runs much faster (with some lag when it would previous hangs).
+- Memory leak is still there.
+
+11:30
+- Re-init sc2 without closing? (Checked)
+- SC2 internal leak?
+- Tensorflow model leak?
+- ray leak?
+
+11:55
+- Eviction - Does not release memory until needed. This is a partial cause but not all of it.
+- With 12 environments it struggles at 0.2GB for some time then crashed.
+The top 5 memory consumers are:                                                                  
+                                                                                                        
+PID     MEM     COMMAND                                                                           
+32954   8.36GB  python test_ray.py                                                                 
+33119   1.54GB  ray_PolicyEvaluator:sample()
+33100   1.52GB  ray_PolicyEvaluator:sample()                                                                
+33088   1.52GB  ray_PolicyEvaluator:sample()                                
+33093   1.5GB   ray_PolicyEvaluator:sample()                                                        
+                 
+In addition, ~6.87 GB of shared memory is currently being used by the Ray object store. You can set the object stor
+e size with the `object_store_memory` parameter when starting Ray, and the max Redis size with `redis_max_memory`.
+
+- With our main python process taking the most memory...
+- Gonna try reduce object store memory (6GB), still oom
+- Trying 4GB, visualize=False
+PID     MEM     COMMAND
+68432   6.0GB   python test_ray.py
+68598   3.85GB  ray_PolicyEvaluator:sample()
+68545   3.82GB  ray_PolicyEvaluator:sample()
+68553   3.8GB   ray_PolicyEvaluator:sample()
+68590   3.8GB   ray_PolicyEvaluator:sample()
+- Now policy eval is taking more memory
+
+21:09
+- Can see that it is learning
+- Might be a bit too slow?..
+- Memory is leaking slowly
+- No memory leak when tested with Acrobot with 10MB object storage
+
+22:02
+- APPO - Seems faster, STILL LEAK
+
+22:52
+- Need to debug our environment... Take out obs/action step by step.
+- Now let's just run APPO overnight and see.

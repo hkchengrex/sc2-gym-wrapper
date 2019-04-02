@@ -17,8 +17,8 @@ PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
 
 # With reference from https://github.com/islamelnabarawy/sc2gym/blob/master/sc2gym/envs/movement_minigame.py
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.INFO)
 
 class SimpleMovementEnv(SC2BaseEnv):
     def __init__(self, **kwargs):
@@ -38,15 +38,28 @@ class SimpleMovementEnv(SC2BaseEnv):
         if obs is None:
             return None, 0, True, {}
         obs = self._process_obs(obs)
+        # obs = self._process_obs(None)
+        # reward = 0
+        # done = False
+        # info = {}
+
         return obs, reward, done, info
 
     def _process_obs(self, obs):
         obs = obs.observation["feature_screen"][PLAYER_RELATIVE]
         obs = np.array(obs.reshape(self.observation_space.shape))
+        # obs = np.zeros(self.observation_space.shape)
         return obs
 
+    # def _process_action(self, action):
+    #     return [FUNCTIONS.Move_screen.id, [0], action]
+
     def _process_action(self, action):
-        return [FUNCTIONS.Move_screen.id, [0], action]
+        if action < 0 or action > self.action_space.n:
+            return [FUNCTIONS.no_op.id]
+        screen_shape = self.observation_spec[0]["feature_screen"][1:]
+        target = list(np.unravel_index(action, screen_shape))
+        return [FUNCTIONS.Move_screen.id, [0], target]
 
     @property
     def observation_space(self):
@@ -55,7 +68,7 @@ class SimpleMovementEnv(SC2BaseEnv):
         return self._observation_space
 
     def _get_observation_space(self):
-        screen_shape = self.observation_spec[0]["feature_screen"][1:] + (1,)
+        screen_shape = (1, ) + self.observation_spec[0]["feature_screen"][1:]
         space = spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32)
         return space
 
@@ -65,9 +78,14 @@ class SimpleMovementEnv(SC2BaseEnv):
             self._action_space = self._get_action_space()
         return self._action_space
 
+    # def _get_action_space(self):
+    #     screen_shape = self.observation_spec[0]["feature_screen"][1:]
+    #     return spaces.MultiDiscrete([s-1 for s in screen_shape])
+
+
     def _get_action_space(self):
         screen_shape = self.observation_spec[0]["feature_screen"][1:]
-        return spaces.MultiDiscrete([s-1 for s in screen_shape])
+        return spaces.Discrete(screen_shape[0] * screen_shape[1] - 1)
 
 
 class CollectMineralShardsEnv(SimpleMovementEnv):

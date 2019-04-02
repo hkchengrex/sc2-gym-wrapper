@@ -23,8 +23,11 @@ env.settings['agent_interface_format'] = sc2_env.parse_agent_interface_format(
           use_raw_units=True)
 
 done = False
-env.reset()
-while not done:
-    obs, reward, done, _ = env.step((0, 0))
+
+while True:
+    env.reset()
+    done = False
+    while not done:
+        obs, reward, done, _ = env.step(0)
 
 env.close()

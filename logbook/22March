@@ -1,0 +1,24 @@
+22:25
+- Fixing "Tensor objects are only iterable when eager execution is"
+- Recompiled latest ray
+- It should be a list of tensors (I guess), now it is just a single tensor
+- Nope. For Acrobot it is also a tensor with shape (?, 3). For ours it is of shape (?, 166).
+Acrobot - Tensor("default_1/tower/fc_net/fc_out/BiasAdd:0", shape=(?, 3), dtype=float32)
+Ours - Tensor("default/vision_net/Reshape:0", shape=(?, 166), dtype=float32)
+
+23:00
+- Passed that stage with single categorical.
+- For multiple categorical, I think the model structure has to output list of tensors.
+- pysc2's flag thing does not work in workers
+
+23:27
+- Forced pysc2 flag in environment init
+- Seems to get stuck after 9 episodes..
+
+23:48
+- Switch to using tune
+- Now it seems to create environments non-stop..
+- Still hangs after a dozen episodes, with memory leak
+
+00:51
+- Decided to run it overnight to see if it is just slow (I don't think so though)

@@ -1,0 +1,8 @@
+10:02
+- It crashes with OOM. I can see that it is learning (not well though), reaching 40 reward in CollectMineralShards in around 3400 episodes in each worker.
+- The search for source of OOM continues...
+
+00:18
+- Testing simple environment with 2GB object store, memory slowly leaking (~30MB per process after 30min)
+- Object store turns out to be per eval process..
+- Now running sc2 with 2GB object + 2GB redis overnight
