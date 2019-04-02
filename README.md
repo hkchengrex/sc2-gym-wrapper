@@ -1,6 +1,8 @@
 # pytorch-sc2-ppo
 
 ## Get RL library and install it
+[Modified pytorch-a2c-ppo-acktr-gail](https://github.com/hkchengrex/pytorch-a2c-ppo-acktr-gail)
+
 `git clone git@github.com:hkchengrex/pytorch-a2c-ppo-acktr-gail.git && cd pytorch-a2c-ppo-acktr-gail.git`
 
 `pip install -e .`
