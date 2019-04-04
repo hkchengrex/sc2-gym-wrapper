@@ -19,11 +19,9 @@ env.settings['agent_interface_format'] = sc2_env.parse_agent_interface_format(
           rgb_screen=None,
           rgb_minimap=None,
           action_space='FEATURES',
-          use_feature_units=True,
-          use_raw_units=True)
+          use_feature_units=True)
 
 done = False
-
 while True:
     env.reset()
     done = False

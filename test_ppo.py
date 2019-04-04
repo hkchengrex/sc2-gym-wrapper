@@ -46,7 +46,7 @@ def main():
                          args.gamma, args.log_dir, device, False)
 
     actor_critic = Policy(
-        envs.observation_space.shape,
+        envs.observation_space,
         envs.action_space,
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
@@ -92,11 +92,20 @@ def main():
             drop_last=True)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
-                              envs.observation_space.shape, envs.action_space,
+                              envs.observation_space, envs.action_space,
                               actor_critic.recurrent_hidden_state_size)
 
     obs = envs.reset()
-    rollouts.obs[0].copy_(obs)
+
+    #####
+
+    image_data = obs['feature_screen']
+    non_image_data = obs['info_discrete']
+
+    rollouts.image[0].copy_(image_data)
+    rollouts.non_image[0].copy_(non_image_data)
+    ########
+
     rollouts.to(device)
 
     episode_rewards = deque(maxlen=10)
@@ -115,9 +124,14 @@ def main():
         for step in range(args.num_steps):
             # Sample actions
             with torch.no_grad():
+
+                ########
+
                 value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
-                    rollouts.obs[step], rollouts.recurrent_hidden_states[step],
+                    rollouts.image[step], rollouts.non_image[step], rollouts.recurrent_hidden_states[step],
                     rollouts.masks[step])
+
+                ########
 
             # Obser reward and next obs
             obs, reward, done, infos = envs.step(action)
@@ -132,13 +146,24 @@ def main():
             bad_masks = torch.FloatTensor(
                 [[0.0] if 'bad_transition' in info.keys() else [1.0]
                  for info in infos])
-            rollouts.insert(obs, recurrent_hidden_states, action,
+
+            ########
+
+            rollouts.insert(obs['feature_screen'], obs['info_discrete'], recurrent_hidden_states, action,
                             action_log_prob, value, reward, masks, bad_masks)
 
+            ########
+
+
+
         with torch.no_grad():
+
+            ########
             next_value = actor_critic.get_value(
-                rollouts.obs[-1], rollouts.recurrent_hidden_states[-1],
+                rollouts.image[step], rollouts.non_image[step], rollouts.recurrent_hidden_states[-1],
                 rollouts.masks[-1]).detach()
+
+            ########
 
         if args.gail:
             if j >= 10:
@@ -151,10 +176,14 @@ def main():
                 discr.update(gail_train_loader, rollouts,
                              utils.get_vec_normalize(envs)._obfilt)
 
+            ########
+
             for step in range(args.num_steps):
                 rollouts.rewards[step] = discr.predict_reward(
-                    rollouts.obs[step], rollouts.actions[step], args.gamma,
+                    rollouts.image[step], rollouts.non_image[step], rollouts.actions[step], args.gamma,
                     rollouts.masks[step])
+
+             ########
 
         rollouts.compute_returns(next_value, args.use_gae, args.gamma,
                                  args.gae_lambda, args.use_proper_time_limits)

@@ -15,6 +15,7 @@ FUNCTIONS = actions.FUNCTIONS
 PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
 
+
 # With reference from https://github.com/islamelnabarawy/sc2gym/blob/master/sc2gym/envs/movement_minigame.py
 
 # logger = logging.getLogger(__name__)
@@ -45,11 +46,22 @@ class SimpleMovementEnv(SC2BaseEnv):
 
         return obs, reward, done, info
 
+
     def _process_obs(self, obs):
-        obs = obs.observation["feature_screen"][PLAYER_RELATIVE]
-        obs = np.array(obs.reshape(self.observation_space.shape))
         # obs = np.zeros(self.observation_space.shape)
-        return obs
+
+        self.n_feature_screen = 1
+        self.n_info = 8
+
+        feature_screen = obs.observation['feature_screen']
+        screen_shape = self.observation_spec[0]["feature_screen"][1:]
+
+        screens = np.zeros((self.n_feature_screen,) + screen_shape, dtype=np.int32)
+        feature_screen[0] = feature_screen['player_relative']
+
+        return {"feature_screen": screens,
+                "info_discrete": obs.observation["player"][1:6],
+                }
 
     # def _process_action(self, action):
     #     return [FUNCTIONS.Move_screen.id, [0], action]
@@ -68,9 +80,40 @@ class SimpleMovementEnv(SC2BaseEnv):
         return self._observation_space
 
     def _get_observation_space(self):
-        screen_shape = (1, ) + self.observation_spec[0]["feature_screen"][1:]
-        space = spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32)
+        screen_shape = (1,) + self.observation_spec[0]["feature_screen"][1:]
+
+        high = np.array([200, 200, 200, 200, 200])
+        low = np.array([0, 0, 0, 0, 0])
+
+        space = spaces.Dict({
+            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32),
+            "info_discrete": spaces.Box(low=low, high=high, dtype=np.int32),
+        })
         return space
+
+    '''
+    def _define_observation_space_dict(self):
+        screen_shape = (1,) + self.observation_spec[0]["feature_screen"][1:]
+ 
+        obv_space_dict = {
+            "image": spaces.Dict({
+                "   feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32),
+            }),
+            "non-image": spaces.Dict({
+                "minerals": spaces.Discrete(50000),
+                'vespene': spaces.Discrete(50000),
+                "food_used": spaces.Discrete(200),
+                "food_cap": spaces.Discrete(200),
+                "food used by army": spaces.Discrete(200),
+                "food used by workers": spaces.Discrete(200),
+                "idle_worker_count": spaces.Discrete(200),
+                'army count': spaces.Discrete(200),
+            })
+        }
+
+
+        return obv_space_dict
+        '''
 
     @property
     def action_space(self):
@@ -81,7 +124,6 @@ class SimpleMovementEnv(SC2BaseEnv):
     # def _get_action_space(self):
     #     screen_shape = self.observation_spec[0]["feature_screen"][1:]
     #     return spaces.MultiDiscrete([s-1 for s in screen_shape])
-
 
     def _get_action_space(self):
         screen_shape = self.observation_spec[0]["feature_screen"][1:]
