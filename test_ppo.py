@@ -98,7 +98,6 @@ def main():
     obs = envs.reset()
 
     #####
-
     image_data = obs['feature_screen']
     non_image_data = obs['info_discrete']
 
@@ -126,15 +125,16 @@ def main():
             with torch.no_grad():
 
                 ########
-
-                value, action, action_log_prob, recurrent_hidden_states = actor_critic.act(
+                value, dis_action, con_action, action_log_prob, recurrent_hidden_states = actor_critic.act(
                     rollouts.image[step], rollouts.non_image[step], rollouts.recurrent_hidden_states[step],
                     rollouts.masks[step])
-
                 ########
 
+            ####
             # Obser reward and next obs
+            action = {"discrete_output": dis_action.cpu().numpy(), "continous_output": con_action.cpu().numpy()}
             obs, reward, done, infos = envs.step(action)
+            ####
 
             for info in infos:
                 if 'episode' in info.keys():
@@ -148,13 +148,9 @@ def main():
                  for info in infos])
 
             ########
-
-            rollouts.insert(obs['feature_screen'], obs['info_discrete'], recurrent_hidden_states, action,
+            rollouts.insert(obs['feature_screen'], obs['info_discrete'], recurrent_hidden_states, dis_action, con_action,
                             action_log_prob, value, reward, masks, bad_masks)
-
             ########
-
-
 
         with torch.no_grad():
 
@@ -162,7 +158,6 @@ def main():
             next_value = actor_critic.get_value(
                 rollouts.image[step], rollouts.non_image[step], rollouts.recurrent_hidden_states[-1],
                 rollouts.masks[-1]).detach()
-
             ########
 
         if args.gail:
@@ -177,12 +172,10 @@ def main():
                              utils.get_vec_normalize(envs)._obfilt)
 
             ########
-
             for step in range(args.num_steps):
                 rollouts.rewards[step] = discr.predict_reward(
-                    rollouts.image[step], rollouts.non_image[step], rollouts.actions[step], args.gamma,
+                    rollouts.image[step], rollouts.non_image[step], rollouts.dis_actions[step], rollouts.con_actions[step], args.gamma,
                     rollouts.masks[step])
-
              ########
 
         rollouts.compute_returns(next_value, args.use_gae, args.gamma,

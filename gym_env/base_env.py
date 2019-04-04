@@ -11,6 +11,8 @@ import gym
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.INFO)
+FUNCTIONS = actions.FUNCTIONS
+
 
 class SC2BaseEnv(gym.Env):
     def __init__(self, **kwargs):
@@ -49,13 +51,13 @@ class SC2BaseEnv(gym.Env):
     def step(self, action):
         self._num_step += 1
 
-        # if action[0] not in self.available_actions:
-        #     logger.warning("Invalid action: %s", action)
-        
-        obs = self._env.step([actions.FunctionCall(action[0], action[1:])])[0]
+        if action[0] not in self.available_actions:
+            obs = self._env.step([actions.FunctionCall(FUNCTIONS.no_op.id, [])])[0]
+        else:
+            obs = self._env.step([actions.FunctionCall(action[0], action[1:])])[0]
         self.available_actions = obs.observation.available_actions
         self._epi_reward += obs.reward
-        
+
         return obs, obs.reward, obs.step_type == StepType.LAST, {}
 
     def close(self):
@@ -104,4 +106,3 @@ class SC2BaseEnv(gym.Env):
     @property
     def episode_reward(self):
         return self._epi_reward
-

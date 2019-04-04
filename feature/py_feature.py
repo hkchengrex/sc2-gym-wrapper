@@ -10,13 +10,9 @@ PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
 class FeatureTransform:
 
     def __init__(self, screen_shape):
-
-
         """
         Define Observation Space
         """
-
-
         """
         Define the screen space
         """

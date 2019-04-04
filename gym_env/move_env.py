@@ -6,7 +6,7 @@ from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 from pysc2.env import sc2_env
 from feature.py_feature import FeatureTransform
-
+from feature.py_action import ActionTransform
 import gym
 from gym import spaces
 
@@ -21,7 +21,7 @@ PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.INFO)
-#f
+# f
 class SimpleMovementEnv(SC2BaseEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -29,6 +29,7 @@ class SimpleMovementEnv(SC2BaseEnv):
         self._action_space = None
         self._observation_space = None
         self.feature_transform = None
+        self.action_transform = None
 
     def reset(self):
         super().reset()
@@ -48,7 +49,6 @@ class SimpleMovementEnv(SC2BaseEnv):
 
         return obs, reward, done, info
 
-
     def _process_obs(self, obs):
         # obs = np.zeros(self.observation_space.shape)
         screens, discrete_info = self.feature_transform.transform(obs)
@@ -60,11 +60,8 @@ class SimpleMovementEnv(SC2BaseEnv):
     #     return [FUNCTIONS.Move_screen.id, [0], action]
 
     def _process_action(self, action):
-        if action < 0 or action > self.action_space.n:
-            return [FUNCTIONS.no_op.id]
-        screen_shape = self.observation_spec[0]["feature_screen"][1:]
-        target = list(np.unravel_index(action, screen_shape))
-        return [FUNCTIONS.Move_screen.id, [0], target]
+        action = self.action_transform.transform(action)
+        return action
 
     @property
     def observation_space(self):
@@ -75,8 +72,10 @@ class SimpleMovementEnv(SC2BaseEnv):
     def _get_observation_space(self):
         self.feature_transform = FeatureTransform(self.observation_spec[0]["feature_screen"][1:])
         space = spaces.Dict({
-            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=self.feature_transform.screen_shape, dtype=np.int32),
-            "info_discrete": spaces.Box(low=self.feature_transform.low, high=self.feature_transform.high, dtype=np.int32),
+            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=self.feature_transform.screen_shape,
+                                         dtype=np.int32),
+            "info_discrete": spaces.Box(low=self.feature_transform.low, high=self.feature_transform.high,
+                                        dtype=np.int32),
         })
         return space
 
@@ -86,13 +85,21 @@ class SimpleMovementEnv(SC2BaseEnv):
             self._action_space = self._get_action_space()
         return self._action_space
 
-    # def _get_action_space(self):
-    #     screen_shape = self.observation_spec[0]["feature_screen"][1:]
-    #     return spaces.MultiDiscrete([s-1 for s in screen_shape])
+    def _get_action_space(self):
+        self.action_transform = ActionTransform()
+        space = spaces.Dict({
+            "continous_output": spaces.Box(low=self.action_transform.low, high=self.action_transform.high,
+                                           dtype=np.int32),
+            "discrete_output": spaces.MultiDiscrete(self.action_transform.discrete_space)
+        })
 
+        return space
+
+    '''
     def _get_action_space(self):
         screen_shape = self.observation_spec[0]["feature_screen"][1:]
         return spaces.Discrete(screen_shape[0] * screen_shape[1] - 1)
+    '''
 
 
 class CollectMineralShardsEnv(SimpleMovementEnv):

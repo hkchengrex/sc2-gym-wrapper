@@ -18,15 +18,48 @@ FUNCTIONS = actions.FUNCTIONS
 
 class ActionTransform:
 
-    def transform(self, action_plan):
+    def __init__(self):
+        """
+        Define Action Space
+        """
+        """
+        Define the discrete space
+        """
+        ###
+        self.discrete_space = [2,5,2]
+        ###
+        self.n_dis_out = len(self.discrete_space)
+        """
+        Define the continous space
+        """
+        ###
+        self.high = np.array([200])
+        self.low = np.array([0])
+        ###
+        self.n_con_out = len(self.high)
 
-        if action_plan['action_id'] == 0:
-            action_plan = [FUNCTIONS.select_unit.id, [action_plan['action_act']], [action_plan['unit_id']]]
-        elif action_plan['action_id'] == 1:
-            action_plan = [FUNCTIONS.select_point.id, [action_plan['action_act']],  action_plan['screen_point']]
-        elif action_plan['action_id'] == 2:
-            action_plan = [FUNCTIONS.select_army.id, [action_plan['select_add']]]
+    def transform(self, action):
+
+        action = { "discrete_output": action[0].astype(int), "continous_output": action[1]}
+        """
+            Define the action space mapping
+        """
+        #################Define#########################
+        action_id = action["discrete_output"][0]
+        action_act = action["discrete_output"][1]
+        unit_id = action["discrete_output"][2]
+        temp = action["continous_output"][0]
+        ################################################
+
+        ##################### sample testing #########################
+        if action_id == 0:
+            action_plan = [FUNCTIONS.select_unit.id, [action_act], [unit_id]]
+        elif action_id == 1:
+            action_plan = [FUNCTIONS.select_point.id, [action_act], (3, 3)]
+        elif action_id == 2:
+            action_plan = [FUNCTIONS.select_army.id, [action_act]]
         else:
             action_plan = [FUNCTIONS.no_op.id]
+        ############################################################
 
         return action_plan
