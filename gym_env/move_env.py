@@ -5,6 +5,7 @@ import numpy as np
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features
 from pysc2.env import sc2_env
+from feature.py_feature import FeatureTransform
 
 import gym
 from gym import spaces
@@ -27,6 +28,7 @@ class SimpleMovementEnv(SC2BaseEnv):
 
         self._action_space = None
         self._observation_space = None
+        self.feature_transform = None
 
     def reset(self):
         super().reset()
@@ -49,18 +51,9 @@ class SimpleMovementEnv(SC2BaseEnv):
 
     def _process_obs(self, obs):
         # obs = np.zeros(self.observation_space.shape)
-
-        self.n_feature_screen = 1
-        self.n_info = 8
-
-        feature_screen = obs.observation['feature_screen']
-        screen_shape = self.observation_spec[0]["feature_screen"][1:]
-
-        screens = np.zeros((self.n_feature_screen,) + screen_shape, dtype=np.int32)
-        feature_screen[0] = feature_screen['player_relative']
-
+        screens, discrete_info = self.feature_transform.transform(obs)
         return {"feature_screen": screens,
-                "info_discrete": obs.observation["player"][1:6],
+                "info_discrete": discrete_info,
                 }
 
     # def _process_action(self, action):
@@ -80,40 +73,12 @@ class SimpleMovementEnv(SC2BaseEnv):
         return self._observation_space
 
     def _get_observation_space(self):
-        screen_shape = (1,) + self.observation_spec[0]["feature_screen"][1:]
-
-        high = np.array([200, 200, 200, 200, 200])
-        low = np.array([0, 0, 0, 0, 0])
-
+        self.feature_transform = FeatureTransform(self.observation_spec[0]["feature_screen"][1:])
         space = spaces.Dict({
-            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32),
-            "info_discrete": spaces.Box(low=low, high=high, dtype=np.int32),
+            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=self.feature_transform.screen_shape, dtype=np.int32),
+            "info_discrete": spaces.Box(low=self.feature_transform.low, high=self.feature_transform.high, dtype=np.int32),
         })
         return space
-
-    '''
-    def _define_observation_space_dict(self):
-        screen_shape = (1,) + self.observation_spec[0]["feature_screen"][1:]
- 
-        obv_space_dict = {
-            "image": spaces.Dict({
-                "   feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=screen_shape, dtype=np.int32),
-            }),
-            "non-image": spaces.Dict({
-                "minerals": spaces.Discrete(50000),
-                'vespene': spaces.Discrete(50000),
-                "food_used": spaces.Discrete(200),
-                "food_cap": spaces.Discrete(200),
-                "food used by army": spaces.Discrete(200),
-                "food used by workers": spaces.Discrete(200),
-                "idle_worker_count": spaces.Discrete(200),
-                'army count': spaces.Discrete(200),
-            })
-        }
-
-
-        return obv_space_dict
-        '''
 
     @property
     def action_space(self):
