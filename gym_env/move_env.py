@@ -20,7 +20,7 @@ PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.INFO)
-
+#f
 class SimpleMovementEnv(SC2BaseEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
