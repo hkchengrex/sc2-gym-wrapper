@@ -5,6 +5,8 @@ import glob
 import os
 import time
 from collections import deque
+from collections import namedtuple
+SVSpec = namedtuple('SVSpec', ['type', 'index', 'scale'])
 
 import gym
 import numpy as np
@@ -49,9 +51,14 @@ def main():
     actor_critic = Policy(
         envs.observation_space,
         envs.action_space,
-        ###
+        #################Define#########################
         [features.SCREEN_FEATURES.player_relative],
-        ###
+        [SVSpec(features.FeatureType.CATEGORICAL, 0, 5),
+         SVSpec(features.FeatureType.SCALAR, 1, 1.),
+         SVSpec(features.FeatureType.SCALAR, 2, 1.),
+         SVSpec(features.FeatureType.SCALAR, 3, 1.),
+         SVSpec(features.FeatureType.SCALAR, 4, 1.)],
+        #################Define#########################
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
 

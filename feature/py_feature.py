@@ -5,6 +5,7 @@ from pysc2.lib import actions, features
 
 PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 PLAYER_RELATIVE_SCALE = features.SCREEN_FEATURES.player_relative.scale
+
 from common import utils
 
 class FeatureTransform:

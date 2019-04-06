@@ -75,7 +75,7 @@ class SimpleMovementEnv(SC2BaseEnv):
             "feature_screen": spaces.Box(low=0, high=500, shape=self.feature_transform.screen_shape,
                                          dtype=np.float32),
             "info_discrete": spaces.Box(low=self.feature_transform.low, high=self.feature_transform.high,
-                                        dtype=np.int32)
+                                        dtype=np.float32),
         })
         return space
 
