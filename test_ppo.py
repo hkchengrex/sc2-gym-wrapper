@@ -20,6 +20,7 @@ from a2c_ppo_acktr.envs import make_vec_envs
 from a2c_ppo_acktr.model import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
+from pysc2.lib import actions, features
 
 import gym_env
 
@@ -48,6 +49,9 @@ def main():
     actor_critic = Policy(
         envs.observation_space,
         envs.action_space,
+        ###
+        [features.SCREEN_FEATURES.player_relative],
+        ###
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
 

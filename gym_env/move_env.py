@@ -72,10 +72,10 @@ class SimpleMovementEnv(SC2BaseEnv):
     def _get_observation_space(self):
         self.feature_transform = FeatureTransform(self.observation_spec[0]["feature_screen"][1:])
         space = spaces.Dict({
-            "feature_screen": spaces.Box(low=0, high=PLAYER_RELATIVE_SCALE, shape=self.feature_transform.screen_shape,
-                                         dtype=np.int32),
+            "feature_screen": spaces.Box(low=0, high=500, shape=self.feature_transform.screen_shape,
+                                         dtype=np.float32),
             "info_discrete": spaces.Box(low=self.feature_transform.low, high=self.feature_transform.high,
-                                        dtype=np.int32),
+                                        dtype=np.int32)
         })
         return space
 
@@ -94,6 +94,9 @@ class SimpleMovementEnv(SC2BaseEnv):
         })
 
         return space
+
+    def get_featurem_map(self):
+        return 1
 
     '''
     def _get_action_space(self):
