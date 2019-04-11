@@ -92,7 +92,6 @@ class SimpleMovementEnv(SC2BaseEnv):
                                            dtype=np.int32),
             "discrete_output": spaces.MultiDiscrete(self.action_transform.discrete_space)
         })
-
         return space
 
     def get_featurem_map(self):
